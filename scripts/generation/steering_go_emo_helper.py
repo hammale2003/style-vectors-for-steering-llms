@@ -30,12 +30,25 @@ def calculate_means_tv(go_emo_train_tv, labels):
     
     return means, ovr_r_means, total_mean
 
+# def concat_layers(go_emo_train, go_emo_test, insertion_layers):
+#     for idx, entry in enumerate(go_emo_train):
+#         concatenated_layers = np.concatenate(entry[2][insertion_layers[0]:insertion_layers[-1]+1]) # resulting in [entry[2][18], entry[2][19], entry[2][20]]
+#         go_emo_train[idx][2] = concatenated_layers
+#     for idx, entry in enumerate(go_emo_test):
+#         concatenated_layers = np.concatenate(entry[2][insertion_layers[0]:insertion_layers[-1]+1])
+#         go_emo_test[idx][2] = concatenated_layers        
+#     return go_emo_train, go_emo_test
+
 def concat_layers(go_emo_train, go_emo_test, insertion_layers):
+    # NOTE: we must use i+1 as we want to steer the correct layer. When using output_hidden_states=True with huggingface function,
+    # the first index contains the embedding layer. Therefore, when applying to model.layer, we need to increase by one.
+    # -> `llm_model.model.layers` contains 32 layers, indexed from 0 to 31, while `hidden_states` contains 33 entries , indexed from 0 to 32
+    
     for idx, entry in enumerate(go_emo_train):
-        concatenated_layers = np.concatenate(entry[2][insertion_layers[0]:insertion_layers[-1]+1])
+        concatenated_layers = np.concatenate([entry[2][i + 1] for i in insertion_layers]) # resulting in [entry[2][19], entry[2][20], entry[2][21]]
         go_emo_train[idx][2] = concatenated_layers
     for idx, entry in enumerate(go_emo_test):
-        concatenated_layers = np.concatenate(entry[2][insertion_layers[0]:insertion_layers[-1]+1])
+        concatenated_layers = np.concatenate([entry[2][i + 1] for i in insertion_layers])
         go_emo_test[idx][2] = concatenated_layers        
     return go_emo_train, go_emo_test
 
