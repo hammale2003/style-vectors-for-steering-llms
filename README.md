@@ -89,7 +89,23 @@ The paths to the different folders for all kinds of vectors and datasets are def
 
 ## Preparing the LLM
 
-In our experiments, we used the Alpaca 7b model. You need to download the weights for yourself and save them locally. You have to set ``ALPACA_WEIGHTS_FOLDER`` to this folder in the ``.env``-file.
+This repo works with Hugging Face models or local folders via environment variables. Originally we used Alpaca 7B, but you can also use Mistral 7B Instruct.
+
+Recommended (generic): set `MODEL_ID` in `.env` to either a HF hub id or a local path, for example:
+
+```
+MODEL_ID="mistralai/Mistral-7B-Instruct-v0.3"
+```
+
+Legacy (backward compatible): if `MODEL_ID` is not set, the code will fall back to `ALPACA_WEIGHTS_FOLDER`:
+
+```
+ALPACA_WEIGHTS_FOLDER="C:/path/to/alpaca_7b_hf"
+```
+
+Notes:
+- The code wraps the MLP modules at specific `INSERTION_LAYERS`. Mistral 7B and LLaMA/Alpaca 7B share a hidden size of 4096, so the provided `SteeringLayer` (which assumes 4096) works out of the box for these models.
+- If you switch to a model with a different hidden size, you will need to adapt the `SteeringLayer` to the new dimension.
 
 
 ## Training Steering Vectors

@@ -6,16 +6,33 @@ from dotenv import load_dotenv
 # load environment variables
 load_dotenv()
 
-def load_llm_model(device):
-    """Load the LLM model and put it on the device.
+def _resolve_model_id_or_path():
+    """Resolve model identifier or local path from environment.
 
-    :return : llm_model, tokenizer
+    Priority:
+    1) MODEL_ID (e.g., "mistralai/Mistral-7B-Instruct-v0.3" or local folder)
+    2) ALPACA_WEIGHTS_FOLDER (legacy var from original repo)
     """
-    # load the LLM
-    ALPACA_WEIGHTS_FOLDER = os.getenv('ALPACA_WEIGHTS_FOLDER')
-    llm_model = transformers.AutoModelForCausalLM.from_pretrained(ALPACA_WEIGHTS_FOLDER).to(device)
-    tokenizer = transformers.AutoTokenizer.from_pretrained(ALPACA_WEIGHTS_FOLDER)
-    
+    model_id = os.getenv("MODEL_ID")
+    if model_id and len(model_id.strip()) > 0:
+        return model_id
+    legacy = os.getenv("ALPACA_WEIGHTS_FOLDER")
+    if legacy and len(legacy.strip()) > 0:
+        return legacy
+    raise EnvironmentError(
+        "Please set MODEL_ID (preferred) or ALPACA_WEIGHTS_FOLDER in your .env. "
+        "For Mistral, try MODEL_ID=mistralai/Mistral-7B-Instruct-v0.3"
+    )
+
+
+def load_llm_model(device):
+    """Load the LLM model and tokenizer and put the model on the specified device.
+
+    Returns: (llm_model, tokenizer)
+    """
+    model_id_or_path = _resolve_model_id_or_path()
+    llm_model = transformers.AutoModelForCausalLM.from_pretrained(model_id_or_path).to(device)
+    tokenizer = transformers.AutoTokenizer.from_pretrained(model_id_or_path)
     return llm_model, tokenizer
 
 def add_steering_layers(llm_model, insertion_layers):

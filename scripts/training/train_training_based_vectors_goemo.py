@@ -1,5 +1,5 @@
 import os
-from transformers import LlamaForCausalLM, LlamaTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 from transformers import set_seed
 import numpy as np
@@ -28,7 +28,7 @@ set_seed(SEED)
 torch.set_default_dtype(torch.float32)
 
 INSERTION_LAYERS = [18, 19, 20] # best layers in our experiments
-MODEL_PATH = os.getenv("ALPACA_WEIGHTS_FOLDER")
+MODEL_PATH = os.getenv("MODEL_ID") or os.getenv("ALPACA_WEIGHTS_FOLDER")
 TRAINED_STEERING_VECTOR_PATH = os.getenv("TRAINED_VECTORS_PATH_GoEmo")
 Path(TRAINED_STEERING_VECTOR_PATH).mkdir(parents=True, exist_ok=True)
     
@@ -50,10 +50,10 @@ df = df_goemo[df_goemo['text'].str.len() < 50] # 19396 samples
 
 # BOS TOKEN ID: 1
 # EOS TOKEN ID: 2
-tokenizer = LlamaTokenizer.from_pretrained(MODEL_PATH)
+tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 # print("Tokenizer loaded")
 
-model = LlamaForCausalLM.from_pretrained(MODEL_PATH, low_cpu_mem_usage=True)
+model = AutoModelForCausalLM.from_pretrained(MODEL_PATH, low_cpu_mem_usage=True)
 # print("Model loaded")
 
 model.to(DEVICE)
